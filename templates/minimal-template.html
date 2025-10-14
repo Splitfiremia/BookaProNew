@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{siteTitle}}</title>
+    <meta name="description" content="{{metaDescription}}">
+    <meta name="keywords" content="{{metaKeywords}}">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{{siteTitle}}">
+    <meta property="og:description" content="{{metaDescription}}">
+    <meta property="og:image" content="{{heroImageUrl}}">
+    <meta property="og:url" content="https://bookerpro.com/{{subdomainSlug}}">
+    <meta property="og:type" content="business.business">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{logoUrl}}">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: {{primaryColor}};
+            --secondary-color: {{secondaryColor}};
+            --text-dark: #000000;
+            --text-light: #737373;
+            --bg-white: #ffffff;
+            --bg-light: #fafafa;
+            --border-light: #e5e5e5;
+            --accent: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--bg-white);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--bg-white);
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-light);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+        
+        .logo img {
+            width: 32px;
+            height: 32px;
+            margin-right: 8px;
+            border-radius: 4px;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 40px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 400;
+            font-size: 0.95rem;
+            transition: color 0.2s ease;
+        }
+        
+        .nav-links a:hover {
+            color: var(--text-dark);
+        }
+        
+        .book-now-btn {
+            background: var(--text-dark);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .book-now-btn:hover {
+            background: var(--primary-color);
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 100px 0;
+            background: var(--bg-white);
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 300;
+            margin-bottom: 30px;
+            color: var(--text-dark);
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+        }
+        
+        .hero .tagline {
+            font-size: 1.3rem;
+            color: var(--text-light);
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+        
+        .hero .description {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 50px;
+            line-height: 1.7;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .hero-image {
+            margin: 60px 0;
+        }
+        
+        .hero-image img {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 0;
+        }
+        
+        .hero-cta {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .cta-primary {
+            background: var(--text-dark);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 0;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            border: 2px solid var(--text-dark);
+        }
+        
+        .cta-primary:hover {
+            background: white;
+            color: var(--text-dark);
+        }
+        
+        .cta-secondary {
+            background: transparent;
+            color: var(--text-dark);
+            border: 2px solid var(--text-dark);
+            padding: 14px 30px;
+            border-radius: 0;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .cta-secondary:hover {
+            background: var(--text-dark);
+            color: white;
+        }
+        
+        /* Section Spacing */
+        .section {
+            padding: 100px 0;
+        }
+        
+        .section-alt {
+            background: var(--bg-light);
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 20px;
+            color: var(--text-dark);
+            letter-spacing: -0.02em;
+        }
+        
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+        
+        /* Services Section */
+        .services-section {
+            padding: 100px 0;
+            background: var(--bg-light);
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 60px;
+        }
+        
+        .service-card {
+            background: var(--bg-white);
+            padding: 40px 30px;
+            border-radius: 0;
+            transition: all 0.2s ease;
+            text-align: left;
+            border: 1px solid var(--border-light);
+        }
+        
+        .service-card:hover {
+            border-color: var(--text-dark);
+        }
+        
+        .service-card h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+        }
+        
+        .service-description {
+            color: var(--text-light);
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .service-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
+        }
+        
+        .price {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .duration {
+            color: var(--text-light);
+            font-weight: 400;
+            font-size: 0.9rem;
+        }
+        
+        /* Team Section */
+        .team-section {
+            padding: 100px 0;
+            background: var(--bg-white);
+        }
+        
+        .providers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 60px;
+        }
+        
+        .provider-card {
+            text-align: center;
+            background: var(--bg-white);
+            transition: all 0.2s ease;
+        }
+        
+        .provider-image {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 30px;
+            border: 4px solid var(--border-light);
+        }
+        
+        .provider-card h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+        }
+        
+        .provider-bio {
+            color: var(--text-light);
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .provider-rating {
+            margin-bottom: 20px;
+        }
+        
+        .rating {
+            color: var(--text-dark);
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        
+        .review-count {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .specialties {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .specialty-tag {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            padding: 4px 12px;
+            border-radius: 0;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border: 1px solid var(--border-light);
+        }
+        
+        /* Reviews Section */
+        .reviews-section {
+            padding: 100px 0;
+            background: var(--bg-light);
+        }
+        
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+        }
+        
+        .review-card {
+            background: var(--bg-white);
+            padding: 40px 30px;
+            border-radius: 0;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border-light);
+        }
+        
+        .review-card:hover {
+            border-color: var(--text-dark);
+        }
+        
+        .review-rating {
+            color: var(--text-dark);
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .review-comment {
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+        
+        .review-author {
+            color: var(--text-light);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        /* Contact Section */
+        .contact-section {
+            padding: 100px 0;
+            background: var(--bg-white);
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: start;
+        }
+        
+        .contact-info h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: var(--text-dark);
+        }
+        
+        .contact-item {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .contact-item:last-child {
+            border-bottom: none;
+        }
+        
+        .contact-details h4 {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+            font-size: 1rem;
+        }
+        
+        .contact-details p {
+            color: var(--text-light);
+            margin: 0;
+            line-height: 1.6;
+        }
+        
+        .hours-info h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: var(--text-dark);
+        }
+        
+        .hours-list {
+            background: var(--bg-light);
+            padding: 30px;
+            border: 1px solid var(--border-light);
+        }
+        
+        .hours-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .hours-row:last-child {
+            border-bottom: none;
+        }
+        
+        .day {
+            font-weight: 500;
+            color: var(--text-dark);
+            text-transform: capitalize;
+        }
+        
+        .time {
+            color: var(--text-light);
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--text-dark);
+            color: white;
+            padding: 80px 0 40px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+        
+        .footer-section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        
+        .footer-section p {
+            color: #a3a3a3;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+        
+        .footer-section a {
+            color: #a3a3a3;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        
+        .footer-section a:hover {
+            color: white;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .social-link {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            color: #a3a3a3;
+            border: 1px solid #404040;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        
+        .social-link:hover {
+            color: white;
+            border-color: white;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid #404040;
+            color: #737373;
+            font-size: 0.9rem;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-cta {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .services-grid,
+            .providers-grid,
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 50px;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Minimal animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav container">
+            <a href="#" class="logo">
+                {{#if logoUrl}}<img src="{{logoUrl}}" alt="{{shopName}} Logo">{{/if}}
+                {{shopName}}
+            </a>
+            <ul class="nav-links">
+                <li><a href="#services">Services</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <a href="{{bookNowUrl}}" class="book-now-btn" onclick="trackBookingClick()">Book</a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>{{shopName}}</h1>
+                {{#if tagline}}<p class="tagline">{{tagline}}</p>{{/if}}
+                <p class="description">{{businessBio}}</p>
+                {{#if heroImageUrl}}
+                <div class="hero-image">
+                    <img src="{{heroImageUrl}}" alt="{{shopName}}">
+                </div>
+                {{/if}}
+                <div class="hero-cta">
+                    <a href="{{bookNowUrl}}" class="cta-primary" onclick="trackBookingClick()">
+                        Book Appointment
+                    </a>
+                    <a href="#contact" class="cta-secondary">
+                        Contact
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services-section" id="services">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Services</h2>
+                <p class="section-subtitle">What we offer</p>
+            </div>
+            {{servicesHtml}}
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section" id="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Contact</h2>
+                <p class="section-subtitle">Get in touch</p>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h3>Information</h3>
+                    {{#if address}}
+                    <div class="contact-item">
+                        <div class="contact-details">
+                            <h4>Address</h4>
+                            <p>{{address}}</p>
+                        </div>
+                    </div>
+                    {{/if}}
+                    {{#if phone}}
+                    <div class="contact-item">
+                        <div class="contact-details">
+                            <h4>Phone</h4>
+                            <p>{{phone}}</p>
+                        </div>
+                    </div>
+                    {{/if}}
+                    {{#if email}}
+                    <div class="contact-item">
+                        <div class="contact-details">
+                            <h4>Email</h4>
+                            <p>{{email}}</p>
+                        </div>
+                    </div>
+                    {{/if}}
+                </div>
+                <div class="hours-info">
+                    <h3>Hours</h3>
+                    {{hoursHtml}}
+                    <div style="margin-top: 40px;">
+                        <a href="{{bookNowUrl}}" class="cta-primary" onclick="trackBookingClick()">
+                            Book Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>{{shopName}}</h3>
+                    <p>{{businessBio}}</p>
+                    <div class="social-links">
+                        {{#if instagramUrl}}<a href="{{instagramUrl}}" class="social-link" target="_blank"><i class="fab fa-instagram"></i></a>{{/if}}
+                        {{#if facebookUrl}}<a href="{{facebookUrl}}" class="social-link" target="_blank"><i class="fab fa-facebook-f"></i></a>{{/if}}
+                        {{#if tiktokUrl}}<a href="{{tiktokUrl}}" class="social-link" target="_blank"><i class="fab fa-tiktok"></i></a>{{/if}}
+                        {{#if twitterUrl}}<a href="{{twitterUrl}}" class="social-link" target="_blank"><i class="fab fa-twitter"></i></a>{{/if}}
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <p>{{address}}</p>
+                    <p>{{phone}}</p>
+                    <p>{{email}}</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Book</h3>
+                    <p><a href="{{bookNowUrl}}" onclick="trackBookingClick()">Online Booking</a></p>
+                    <p><a href="#services">Services</a></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 {{shopName}}. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {{schemaJson}}
+    </script>
+
+    <!-- JavaScript -->
+    <script>
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Track booking clicks
+        function trackBookingClick() {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'booking_click', {
+                    'event_category': 'engagement',
+                    'event_label': 'book_now_button'
+                });
+            }
+            
+            fetch('/api/website/{{subdomainSlug}}/track', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    event: 'booking_click',
+                    metadata: {
+                        page: window.location.pathname,
+                        referrer: document.referrer,
+                        userAgent: navigator.userAgent,
+                        timestamp: new Date().toISOString()
+                    }
+                })
+            }).catch(console.error);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Track page view
+            fetch('/api/website/{{subdomainSlug}}/track', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    event: 'page_view',
+                    metadata: {
+                        page: window.location.pathname,
+                        referrer: document.referrer,
+                        userAgent: navigator.userAgent,
+                        timestamp: new Date().toISOString()
+                    }
+                })
+            }).catch(console.error);
+
+            // Simple fade-in animation
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.service-card, .contact-item').forEach(el => {
+                el.classList.add('fade-in');
+                observer.observe(el);
+            });
+        });
+    </script>
+
+    <!-- Analytics -->
+    {{#if googleAnalyticsId}}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{googleAnalyticsId}}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{googleAnalyticsId}}');
+    </script>
+    {{/if}}
+</body>
+</html>

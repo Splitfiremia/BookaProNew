@@ -1,0 +1,342 @@
+USER JOURNEY MAPS - TheCut Beauty Services App
+==============================================
+
+1. CLIENT USER JOURNEY
+=====================
+
+1.1 ONBOARDING FLOW
+-------------------
+Entry Point: App Launch → Home Login Page
+↓
+Authentication:
+- Login with test credentials (client@test.com / client123)
+- Or register new account
+↓
+Client Onboarding:
+- Profile Type Selection
+- Welcome Screen
+- Search Preferences Setup
+- Payment Method Setup
+↓
+Main App Access: Client Dashboard
+
+1.2 SERVICE DISCOVERY JOURNEY
+-----------------------------
+Client Dashboard Home → Browse Providers
+↓
+Filter & Search:
+- Category selection (Hair, Nails, Massage, etc.)
+- Price range filtering
+- Distance/location filtering
+- Availability filtering
+- Rating/review sorting
+↓
+Provider Selection:
+- View provider profiles
+- Check portfolio/gallery
+- Read reviews and ratings
+- View services and pricing
+- Check availability
+↓
+Booking Decision
+
+1.3 BOOKING FLOW
+---------------
+Provider Profile → Select Service
+↓
+Service Selection:
+- Choose from provider's service menu
+- View duration and pricing
+- Add service notes/preferences
+↓
+Date Selection:
+- Calendar view with available dates
+- Time slot selection
+- Duration confirmation
+↓
+Booking Confirmation:
+- Review appointment details
+- Confirm contact information
+- Payment processing
+- Booking confirmation
+↓
+Appointment Management:
+- View in appointments tab
+- Receive notifications
+- Option to reschedule/cancel
+
+1.4 APPOINTMENT EXPERIENCE
+-------------------------
+Pre-Appointment:
+- Reminder notifications
+- Provider contact information
+- Directions to location
+↓
+During Appointment:
+- Check-in process
+- Service delivery
+↓
+Post-Appointment:
+- Payment completion
+- Tip processing
+- Review and rating
+- Rebook option
+
+1.5 PROFILE MANAGEMENT
+---------------------
+Profile Tab Access:
+- View personal information
+- Update contact details
+- Manage payment methods
+- View appointment history
+- Access settings
+- Logout functionality
+
+2. PROVIDER USER JOURNEY
+=======================
+
+2.1 ONBOARDING FLOW
+-------------------
+Entry Point: App Launch → Home Login Page
+↓
+Authentication:
+- Login with test credentials (provider@test.com / provider123)
+- Or register new account
+↓
+Provider Onboarding:
+- Provider Type Selection (Independent/Shop-based)
+- Personal Information Setup
+- Work Situation Configuration
+- Service Address Setup
+- Services Menu Creation
+- Profile & Portfolio Setup
+- Availability Configuration
+- Shop Search (if shop-based)
+- Summary & Completion
+↓
+Main App Access: Provider Dashboard
+
+2.2 DAILY WORKFLOW
+-----------------
+Provider Dashboard Home:
+- View today's schedule
+- Check pending requests
+- Monitor earnings
+- Quick actions (availability, services)
+↓
+Request Management:
+- Receive booking notifications
+- Review appointment requests
+- Accept/decline bookings
+- Communicate with clients
+↓
+Schedule Management:
+- View daily/weekly calendar
+- Manage availability
+- Block time slots
+- Handle cancellations/reschedules
+
+2.3 CLIENT INTERACTION
+---------------------
+Appointment Requests:
+- Review client information
+- Confirm service details
+- Set expectations
+↓
+Service Delivery:
+- Client check-in
+- Service execution
+- Payment processing
+- Client feedback collection
+↓
+Follow-up:
+- Post-service notes
+- Rebook opportunities
+- Client relationship management
+
+2.4 BUSINESS MANAGEMENT
+----------------------
+Earnings Tracking:
+- Daily/weekly/monthly revenue
+- Service performance analytics
+- Tip tracking
+- Payout management
+↓
+Profile Management:
+- Update bio and specialties
+- Manage service menu
+- Upload portfolio images
+- Update availability
+↓
+Client Management:
+- View client history
+- Track preferences
+- Manage relationships
+
+3. SHOP OWNER USER JOURNEY
+=========================
+
+3.1 ONBOARDING FLOW
+-------------------
+Entry Point: App Launch → Home Login Page
+↓
+Authentication:
+- Login with test credentials (owner@test.com / owner123)
+- Or register new account
+↓
+Shop Owner Onboarding:
+- Shop Information Setup
+- Owner Information
+- Shop Type Selection
+- Service List Creation
+- Subscription Plan Selection
+- Payment Information
+- Policies Configuration
+↓
+Main App Access: Shop Owner Dashboard
+
+3.2 TEAM MANAGEMENT
+------------------
+Team Tab:
+- View all providers
+- Add new team members
+- Manage permissions
+- Track performance
+- Handle booth rent
+↓
+Provider Onboarding:
+- Send invitations
+- QR code invites
+- Permission setup
+- Service assignment
+- Booth rent configuration
+
+3.3 BUSINESS OPERATIONS
+----------------------
+Dashboard Overview:
+- Revenue analytics
+- Appointment metrics
+- Team performance
+- Customer satisfaction
+↓
+Calendar Management:
+- Multi-provider scheduling
+- Resource allocation
+- Conflict resolution
+- Capacity planning
+↓
+Analytics & Reporting:
+- Financial reports
+- Performance metrics
+- Customer demographics
+- Growth projections
+
+3.4 SHOP MANAGEMENT
+------------------
+Settings Configuration:
+- Shop information updates
+- Operating hours
+- Service menu management
+- Pricing strategies
+- Policy updates
+↓
+Financial Management:
+- Revenue tracking
+- Booth rent collection
+- Payout processing
+- Tax reporting
+
+4. CROSS-ROLE INTERACTIONS
+=========================
+
+4.1 CLIENT-PROVIDER INTERACTION
+------------------------------
+Booking Request:
+Client → Service Request → Provider
+Provider → Accept/Decline → Client
+Client → Confirmation → Appointment Created
+
+4.2 PROVIDER-SHOP OWNER INTERACTION
+----------------------------------
+Team Management:
+Shop Owner → Invite Provider → Provider Accepts
+Provider → Service Delivery → Revenue Share → Shop Owner
+Shop Owner → Performance Review → Provider Feedback
+
+4.3 NOTIFICATION FLOWS
+---------------------
+Appointment Notifications:
+- Booking confirmations
+- Reminder alerts
+- Cancellation notices
+- Payment confirmations
+
+Business Notifications:
+- New team member requests
+- Performance alerts
+- Payment notifications
+- System updates
+
+5. ERROR HANDLING & EDGE CASES
+=============================
+
+5.1 AUTHENTICATION ISSUES
+-------------------------
+- Invalid credentials → Error message → Retry option
+- Network connectivity → Offline mode → Sync when online
+- Session expiry → Re-authentication prompt
+
+5.2 BOOKING CONFLICTS
+--------------------
+- Double booking → Conflict resolution → Alternative suggestions
+- Provider unavailability → Notification → Rebooking options
+- Payment failures → Retry mechanism → Alternative payment methods
+
+5.3 TECHNICAL FAILURES
+---------------------
+- App crashes → Error boundary → Recovery options
+- Data sync issues → Retry mechanism → Manual sync
+- Performance issues → Loading states → Timeout handling
+
+6. ACCESSIBILITY CONSIDERATIONS
+==============================
+
+6.1 VISUAL ACCESSIBILITY
+-----------------------
+- High contrast color schemes
+- Scalable text sizes
+- Clear visual hierarchy
+- Icon with text labels
+
+6.2 MOTOR ACCESSIBILITY
+----------------------
+- Large touch targets
+- Gesture alternatives
+- Voice input support
+- Simplified navigation
+
+6.3 COGNITIVE ACCESSIBILITY
+--------------------------
+- Clear instructions
+- Progress indicators
+- Error prevention
+- Consistent patterns
+
+7. PERFORMANCE OPTIMIZATION
+==========================
+
+7.1 LOADING STRATEGIES
+---------------------
+- Lazy loading for images
+- Progressive data loading
+- Caching strategies
+- Offline functionality
+
+7.2 USER EXPERIENCE OPTIMIZATION
+-------------------------------
+- Smooth transitions
+- Immediate feedback
+- Predictive loading
+- Background sync
+
+This user journey documentation provides a comprehensive view of how different user types interact with TheCut app, from initial onboarding through daily usage patterns and business operations.

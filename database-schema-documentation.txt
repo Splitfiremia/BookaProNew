@@ -1,0 +1,648 @@
+DATABASE SCHEMA DOCUMENTATION - TheCut Beauty Services App
+=========================================================
+
+1. DATABASE OVERVIEW
+===================
+
+1.1 DATABASE ARCHITECTURE
+-------------------------
+Database Type: Relational Database (PostgreSQL recommended for production)
+Current Implementation: Mock data with TypeScript interfaces
+ORM: Prisma (recommended for production)
+Caching Layer: React Query for client-side caching
+
+Schema Design Principles:
+- Normalized data structure
+- Foreign key relationships
+- Audit trail capabilities
+- Scalable multi-tenant architecture
+- GDPR compliance ready
+
+1.2 CORE ENTITIES OVERVIEW
+--------------------------
+Primary Entities:
+- Users (Authentication and basic info)
+- Shops (Business locations)
+- Providers (Service providers)
+- Services (Service offerings)
+- Appointments (Booking system)
+- Payments (Financial transactions)
+- Reviews (Customer feedback)
+
+Supporting Entities:
+- Notifications (Real-time updates)
+- Analytics (Business intelligence)
+- Availability (Scheduling system)
+- Team Members (Shop management)
+- Booth Rent (Financial tracking)
+
+2. DETAILED SCHEMA DEFINITIONS
+==============================
+
+2.1 USER MANAGEMENT SCHEMA
+--------------------------
+
+Users Table:
+```sql
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    role user_role NOT NULL,
+    profile_image TEXT,
+    phone VARCHAR(20),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TYPE user_role AS ENUM ('client', 'provider', 'owner');
+```
+
+TypeScript Interface:
+```typescript
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  profileImage?: string;
+  phone?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type UserRole = 'client' | 'provider' | 'owner';
+```
+
+Indexes:
+- PRIMARY KEY on id
+- UNIQUE INDEX on email
+- INDEX on role for role-based queries
+- INDEX on created_at for chronological sorting
+
+2.2 BUSINESS ENTITIES SCHEMA
+----------------------------
+
+Shops Table:
+```sql
+CREATE TABLE shops (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    address TEXT NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(50) NOT NULL,
+    zip VARCHAR(10) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    email VARCHAR(255),
+    website TEXT,
+    description TEXT,
+    image TEXT,
+    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+TypeScript Interface:
+```typescript
+export interface Shop {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  phone: string;
+  email?: string;
+  website?: string;
+  description?: string;
+  image?: string;
+  ownerId: string;
+  masterServiceList: Service[];
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+Providers Table:
+```sql
+CREATE TABLE providers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    shop_id UUID REFERENCES shops(id) ON DELETE SET NULL,
+    is_independent BOOLEAN NOT NULL DEFAULT true,
+    specialties TEXT[] DEFAULT '{}',
+    bio TEXT,
+    experience TEXT,
+    portfolio TEXT[] DEFAULT '{}',
+    booth_rent_amount DECIMAL(10,2),
+    booth_rent_due_date DATE,
+    booth_rent_frequency booth_rent_frequency,
+    payout_schedule payout_schedule NOT NULL DEFAULT 'weekly',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TYPE booth_rent_frequency AS ENUM ('weekly', 'monthly');
+CREATE TYPE payout_schedule AS ENUM ('daily', 'weekly', 'monthly', 'instant');
+```
+
+TypeScript Interface:
+```typescript
+export interface Provider {
+  id: string;
+  userId: string;
+  shopId?: string;
+  isIndependent: boolean;
+  specialties: string[];
+  bio?: string;
+  experience?: string;
+  portfolio?: string[];
+  boothRentAmount?: number;
+  boothRentDueDate?: string;
+  boothRentFrequency?: 'weekly' | 'monthly';
+  payoutSchedule: 'daily' | 'weekly' | 'monthly' | 'instant';
+  services?: Service[];
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+2.3 SERVICE MANAGEMENT SCHEMA
+-----------------------------
+
+Services Table:
+```sql
+CREATE TABLE services (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    duration INTEGER NOT NULL, -- in minutes
+    price DECIMAL(10,2) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    provider_id UUID REFERENCES providers(id) ON DELETE CASCADE,
+    shop_id UUID REFERENCES shops(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    CONSTRAINT service_ownership CHECK (
+        (provider_id IS NOT NULL AND shop_id IS NULL) OR
+        (provider_id IS NULL AND shop_id IS NOT NULL)
+    )
+);
+```
+
+TypeScript Interface:
+```typescript
+export interface Service {
+  id: string;
+  name: string;
+  description?: string;
+  duration: number; // in minutes
+  price: number;
+  isActive: boolean;
+  providerId?: string; // For independent providers
+  shopId?: string; // For shop master service lists
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+Provider Service Offerings Table:
+```sql
+CREATE TABLE provider_service_offerings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
+    service_id UUID NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+    is_offered BOOLEAN NOT NULL DEFAULT true,
+    custom_price DECIMAL(10,2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    UNIQUE(provider_id, service_id)
+);
+```
+
+2.4 APPOINTMENT SYSTEM SCHEMA
+-----------------------------
+
+Appointments Table:
+```sql
+CREATE TABLE appointments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
+    service_id UUID NOT NULL REFERENCES services(id) ON DELETE RESTRICT,
+    shop_id UUID NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+    date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    status appointment_status NOT NULL DEFAULT 'requested',
+    notes TEXT,
+    client_notes TEXT,
+    provider_notes TEXT,
+    cancellation_reason TEXT,
+    no_show_reason TEXT,
+    reminder_sent BOOLEAN DEFAULT false,
+    confirmation_sent BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TYPE appointment_status AS ENUM (
+    'requested', 'confirmed', 'completed', 'cancelled', 'no-show'
+);
+```
+
+TypeScript Interface:
+```typescript
+export interface Appointment {
+  id: string;
+  clientId: string;
+  providerId: string;
+  serviceId: string;
+  shopId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: AppointmentStatus;
+  notes?: string;
+  clientNotes?: string;
+  providerNotes?: string;
+  cancellationReason?: string;
+  noShowReason?: string;
+  reminderSent?: boolean;
+  confirmationSent?: boolean;
+  createdAt: string;
+  updatedAt: string;
+  statusHistory: AppointmentStatusChange[];
+}
+
+export type AppointmentStatus = 'requested' | 'confirmed' | 'completed' | 'cancelled' | 'no-show';
+```
+
+Appointment Status History Table:
+```sql
+CREATE TABLE appointment_status_changes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    appointment_id UUID NOT NULL REFERENCES appointments(id) ON DELETE CASCADE,
+    from_status appointment_status,
+    to_status appointment_status NOT NULL,
+    changed_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    changed_by_role user_role NOT NULL,
+    reason TEXT,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+2.5 FINANCIAL SCHEMA
+--------------------
+
+Payments Table:
+```sql
+CREATE TABLE payments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    appointment_id UUID NOT NULL REFERENCES appointments(id) ON DELETE CASCADE,
+    amount DECIMAL(10,2) NOT NULL,
+    tip_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+    status payment_status NOT NULL DEFAULT 'pending',
+    payment_method VARCHAR(100) NOT NULL,
+    transaction_id VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TYPE payment_status AS ENUM ('pending', 'completed', 'refunded');
+```
+
+TypeScript Interface:
+```typescript
+export interface Payment {
+  id: string;
+  appointmentId: string;
+  amount: number;
+  tipAmount: number;
+  status: 'pending' | 'completed' | 'refunded';
+  paymentMethod: string;
+  transactionId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+Booth Rent Tracking Table:
+```sql
+CREATE TABLE booth_rent (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
+    shop_id UUID NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+    amount DECIMAL(10,2) NOT NULL,
+    due_date DATE NOT NULL,
+    status booth_rent_status NOT NULL DEFAULT 'pending',
+    payment_date DATE,
+    payment_method VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TYPE booth_rent_status AS ENUM ('pending', 'paid', 'overdue');
+```
+
+2.6 SCHEDULING SCHEMA
+--------------------
+
+Provider Availability Table:
+```sql
+CREATE TABLE provider_availability (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
+    day_of_week day_of_week NOT NULL,
+    is_enabled BOOLEAN NOT NULL DEFAULT true,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    UNIQUE(provider_id, day_of_week, start_time, end_time)
+);
+
+CREATE TYPE day_of_week AS ENUM (
+    'monday', 'tuesday', 'wednesday', 'thursday', 
+    'friday', 'saturday', 'sunday'
+);
+```
+
+Shop Operating Hours Table:
+```sql
+CREATE TABLE shop_operating_hours (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    shop_id UUID NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+    day_of_week day_of_week NOT NULL,
+    is_open BOOLEAN NOT NULL DEFAULT true,
+    open_time TIME,
+    close_time TIME,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    UNIQUE(shop_id, day_of_week)
+);
+```
+
+2.7 COMMUNICATION SCHEMA
+------------------------
+
+Notifications Table:
+```sql
+CREATE TABLE notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type notification_type NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    appointment_id UUID REFERENCES appointments(id) ON DELETE CASCADE,
+    read BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TYPE notification_type AS ENUM (
+    'appointment_requested', 'appointment_confirmed', 
+    'appointment_cancelled', 'appointment_reminder', 
+    'payment_received'
+);
+```
+
+Reviews Table:
+```sql
+CREATE TABLE reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    appointment_id UUID NOT NULL REFERENCES appointments(id) ON DELETE CASCADE,
+    client_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    UNIQUE(appointment_id)
+);
+```
+
+2.8 ANALYTICS SCHEMA
+--------------------
+
+Analytics Table:
+```sql
+CREATE TABLE analytics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    shop_id UUID REFERENCES shops(id) ON DELETE CASCADE,
+    provider_id UUID REFERENCES providers(id) ON DELETE CASCADE,
+    period analytics_period NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    total_appointments INTEGER NOT NULL DEFAULT 0,
+    total_revenue DECIMAL(12,2) NOT NULL DEFAULT 0,
+    average_rating DECIMAL(3,2),
+    top_services JSONB DEFAULT '[]',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    CONSTRAINT analytics_entity CHECK (
+        (shop_id IS NOT NULL AND provider_id IS NULL) OR
+        (shop_id IS NULL AND provider_id IS NOT NULL)
+    )
+);
+
+CREATE TYPE analytics_period AS ENUM ('daily', 'weekly', 'monthly', 'yearly');
+```
+
+3. RELATIONSHIPS & CONSTRAINTS
+==============================
+
+3.1 PRIMARY RELATIONSHIPS
+-------------------------
+User → Provider (1:1)
+- One user can be one provider
+- Provider references user.id
+
+Shop → Provider (1:N)
+- One shop can have many providers
+- Provider.shop_id references shop.id (nullable for independent providers)
+
+Shop → Service (1:N)
+- One shop can have many master services
+- Service.shop_id references shop.id
+
+Provider → Service (1:N)
+- One independent provider can offer many services
+- Service.provider_id references provider.id
+
+Appointment → User/Provider/Service/Shop (N:1 each)
+- Many appointments reference one client, provider, service, shop
+
+3.2 BUSINESS RULES CONSTRAINTS
+------------------------------
+Service Ownership:
+- A service must belong to either a shop OR a provider, not both
+- Enforced by CHECK constraint
+
+Appointment Scheduling:
+- End time must be after start time
+- No overlapping appointments for same provider
+- Appointments must be within shop operating hours
+
+Provider Association:
+- Independent providers (is_independent = true) cannot have shop_id
+- Shop-based providers must have shop_id
+
+3.3 DATA INTEGRITY CONSTRAINTS
+------------------------------
+Referential Integrity:
+- All foreign keys have appropriate CASCADE/RESTRICT rules
+- Orphaned records are prevented through proper constraints
+
+Data Validation:
+- Email format validation
+- Phone number format validation
+- Rating values between 1-5
+- Positive amounts for payments and prices
+
+4. INDEXING STRATEGY
+===================
+
+4.1 PERFORMANCE INDEXES
+-----------------------
+```sql
+-- User lookups
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
+
+-- Appointment queries
+CREATE INDEX idx_appointments_provider_date ON appointments(provider_id, date);
+CREATE INDEX idx_appointments_client_date ON appointments(client_id, date);
+CREATE INDEX idx_appointments_shop_date ON appointments(shop_id, date);
+CREATE INDEX idx_appointments_status ON appointments(status);
+
+-- Provider searches
+CREATE INDEX idx_providers_shop ON providers(shop_id);
+CREATE INDEX idx_providers_independent ON providers(is_independent);
+
+-- Service lookups
+CREATE INDEX idx_services_provider ON services(provider_id);
+CREATE INDEX idx_services_shop ON services(shop_id);
+CREATE INDEX idx_services_active ON services(is_active);
+
+-- Availability queries
+CREATE INDEX idx_availability_provider_day ON provider_availability(provider_id, day_of_week);
+
+-- Notification queries
+CREATE INDEX idx_notifications_user_unread ON notifications(user_id, read);
+CREATE INDEX idx_notifications_created ON notifications(created_at);
+```
+
+4.2 COMPOSITE INDEXES
+---------------------
+```sql
+-- Complex appointment queries
+CREATE INDEX idx_appointments_provider_status_date 
+ON appointments(provider_id, status, date);
+
+-- Service offering lookups
+CREATE INDEX idx_service_offerings_provider_offered 
+ON provider_service_offerings(provider_id, is_offered);
+
+-- Analytics queries
+CREATE INDEX idx_analytics_period_dates 
+ON analytics(period, start_date, end_date);
+```
+
+5. DATA MIGRATION STRATEGY
+==========================
+
+5.1 MIGRATION SCRIPTS
+---------------------
+Version Control:
+- Sequential migration files
+- Rollback scripts for each migration
+- Data validation after migrations
+
+Migration Types:
+- Schema changes (DDL)
+- Data transformations (DML)
+- Index optimizations
+- Constraint additions
+
+5.2 SEED DATA
+-------------
+Development Seed Data:
+- Test users for each role
+- Sample shops and providers
+- Mock appointments and services
+- Realistic availability schedules
+
+Production Seed Data:
+- System configuration data
+- Default service categories
+- Initial admin users
+- Base analytics periods
+
+6. BACKUP & RECOVERY
+====================
+
+6.1 BACKUP STRATEGY
+-------------------
+Full Backups:
+- Daily full database backups
+- Weekly archived backups
+- Monthly long-term storage
+
+Incremental Backups:
+- Hourly transaction log backups
+- Point-in-time recovery capability
+- Cross-region backup replication
+
+6.2 RECOVERY PROCEDURES
+----------------------
+Disaster Recovery:
+- Automated failover procedures
+- Data consistency validation
+- Service restoration protocols
+- Communication procedures
+
+Data Recovery:
+- Point-in-time recovery
+- Selective table recovery
+- User data export/import
+- Audit trail preservation
+
+7. SECURITY CONSIDERATIONS
+==========================
+
+7.1 DATA PROTECTION
+-------------------
+Encryption:
+- Encryption at rest for sensitive data
+- Encrypted connections (TLS)
+- Encrypted backups
+- Key rotation policies
+
+Access Control:
+- Role-based database access
+- Principle of least privilege
+- Connection pooling security
+- Query parameter sanitization
+
+7.2 AUDIT TRAIL
+---------------
+Change Tracking:
+- created_at/updated_at on all tables
+- Appointment status change history
+- User action logging
+- Data modification tracking
+
+Compliance:
+- GDPR right to deletion
+- Data retention policies
+- Audit log preservation
+- Privacy impact assessments
+
+This database schema documentation provides a comprehensive foundation for implementing a robust, scalable, and secure data layer for the TheCut beauty services application.
