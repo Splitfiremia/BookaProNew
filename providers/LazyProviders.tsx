@@ -14,6 +14,7 @@ import { SocialProvider } from '@/providers/SocialProvider';
 import { WaitlistProvider } from '@/providers/WaitlistProvider';
 import { TeamManagementProvider } from '@/providers/TeamManagementProvider';
 import { ShopManagementProvider } from '@/providers/ShopManagementProvider';
+import { AvailabilityProvider } from '@/providers/AvailabilityProvider';
 
 const ProviderErrorFallback = React.memo(() => {
   return (
@@ -239,11 +240,13 @@ export function FlatProviders({ children }: LazyProvidersProps) {
   
   return (
     <ErrorBoundary fallback={<ProviderErrorFallback />}>
-      <AppointmentProvider>
-        <OnboardingProvider>
-          {children}
-        </OnboardingProvider>
-      </AppointmentProvider>
+      <AvailabilityProvider>
+        <AppointmentProvider>
+          <OnboardingProvider>
+            {children}
+          </OnboardingProvider>
+        </AppointmentProvider>
+      </AvailabilityProvider>
     </ErrorBoundary>
   );
 }
@@ -296,19 +299,21 @@ export function ProviderProviders({ children }: LazyProvidersProps) {
   
   return (
     <ErrorBoundary fallback={<ProviderErrorFallback />}>
-      <TeamManagementProvider>
-        <ServicesProvider>
-          <PaymentProvider>
-            <SocialProvider>
-              <AppointmentProvider>
-                <OnboardingProvider>
-                  {children}
-                </OnboardingProvider>
-              </AppointmentProvider>
-            </SocialProvider>
-          </PaymentProvider>
-        </ServicesProvider>
-      </TeamManagementProvider>
+      <AvailabilityProvider>
+        <TeamManagementProvider>
+          <ServicesProvider>
+            <PaymentProvider>
+              <SocialProvider>
+                <AppointmentProvider>
+                  <OnboardingProvider>
+                    {children}
+                  </OnboardingProvider>
+                </AppointmentProvider>
+              </SocialProvider>
+            </PaymentProvider>
+          </ServicesProvider>
+        </TeamManagementProvider>
+      </AvailabilityProvider>
     </ErrorBoundary>
   );
 }
@@ -420,7 +425,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   errorText: {
-    color: COLORS.textLight,
+    color: COLORS.secondary,
     fontSize: FONT_SIZES.md,
     fontFamily: FONTS.regular,
     textAlign: 'center',
