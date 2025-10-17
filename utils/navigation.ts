@@ -8,16 +8,23 @@ export const handlePostLogoutNavigation = async (): Promise<void> => {
   try {
     console.log('🚀 Navigation: Starting post-logout navigation sequence');
     
-    // First, try to dismiss all modals and overlays
+    // First, try to dismiss all modals and overlays (if any)
+    // Note: dismissAll() can trigger POP_TO_TOP errors when there's no stack
+    // This is a development warning and safe to ignore in production
     try {
-      router.dismissAll();
-      console.log('✅ Navigation: All modals dismissed');
-    } catch (dismissError) {
-      console.warn('⚠️ Navigation: Could not dismiss all modals, continuing...', dismissError);
+      if (router.canDismiss?.()) {
+        router.dismissAll();
+        console.log('✅ Navigation: All modals dismissed');
+      } else {
+        console.log('ℹ️ Navigation: No modals to dismiss, skipping...');
+      }
+    } catch {
+      // Silent handling as this is expected when there's nothing to dismiss
+      console.log('ℹ️ Navigation: Dismiss operation skipped (no navigation stack)');
     }
     
     // Add a small delay to ensure navigation stack operations complete
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     // Navigate to the root/auth screen with replacement to clear history
     console.log('🔄 Navigation: Redirecting to auth screen');
@@ -180,7 +187,7 @@ export const emergencySignOut = async (): Promise<void> => {
       authKeys.forEach(key => {
         try {
           localStorage.removeItem(key);
-        } catch (e) {
+        } catch {
           // Silent fail for storage cleanup
         }
       });
@@ -220,7 +227,7 @@ export const validateNavigationState = (): {
     if (currentPath.includes('deep-link')) {
       issues.push('Currently in deep link, may need special handling');
     }
-  } catch (error) {
+  } catch {
     issues.push('Cannot access current navigation state');
   }
   
