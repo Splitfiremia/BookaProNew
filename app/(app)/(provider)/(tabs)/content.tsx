@@ -9,6 +9,7 @@ import {
   Alert,
   Platform,
   useWindowDimensions,
+  RefreshControl,
 } from 'react-native';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,6 +27,12 @@ export default function ContentScreen() {
   const [postCaption, setPostCaption] = useState<string>('');
   const [selectedPostImage, setSelectedPostImage] = useState<string | null>(null);
   const [isCreatingPost, setIsCreatingPost] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1500);
+  }, []);
 
   const userPortfolio = user?.id ? getProviderPortfolio(user.id) : [];
   const portfolioItemSize = (width - 48) / 3;
@@ -121,7 +128,18 @@ export default function ContentScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor={COLORS.primary}
+            colors={[COLORS.primary]}
+          />
+        }
+      >
         {/* Portfolio Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -274,6 +292,11 @@ const styles = StyleSheet.create({
   portfolioItem: {
     position: 'relative',
     marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   portfolioImage: {
     width: 100,

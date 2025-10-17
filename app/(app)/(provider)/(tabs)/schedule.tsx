@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -138,10 +138,10 @@ export default function ProviderScheduleScreen() {
 
   const weekDates = getWeekDates();
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 1500);
-  };
+  }, []);
 
   const getStatusColor = (status: Appointment["status"]) => {
     switch (status) {
@@ -158,7 +158,7 @@ export default function ProviderScheduleScreen() {
     }
   };
 
-  const renderAppointment = ({ item }: { item: Appointment }) => {
+  const renderAppointment = useCallback(({ item }: { item: Appointment }) => {
     const isManualAppointment = item.id.startsWith('manual-');
     
     return (
@@ -210,7 +210,7 @@ export default function ProviderScheduleScreen() {
       </View>
     </TouchableOpacity>
   );
-  };
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
@@ -261,7 +261,12 @@ export default function ProviderScheduleScreen() {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContent}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh}
+              tintColor={COLORS.primary}
+              colors={[COLORS.primary]}
+            />
             }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
@@ -443,6 +448,11 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     flexDirection: "column",
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   appointmentHeader: {
     flexDirection: "row",
@@ -531,6 +541,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 60,
+    opacity: 0.7,
   },
   emptyText: {
     fontSize: 18,

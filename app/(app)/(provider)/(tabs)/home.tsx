@@ -1,5 +1,5 @@
-import React, { useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useMemo, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import NotificationService from '@/services/NotificationService';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,8 +17,17 @@ export default function ProviderHomeScreen() {
   const { user } = useAuth();
   const { pendingRequests, confirmAppointment, cancelAppointment } = useProviderAppointments();
   const insets = useSafeAreaInsets();
+  const [refreshing, setRefreshing] = useState(false);
+  const fadeAnim = useMemo(() => new Animated.Value(0), []);
 
-  // Initialize notification service
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
+
   useEffect(() => {
     const initNotifications = async () => {
       await NotificationService.initialize();
@@ -27,7 +36,6 @@ export default function ProviderHomeScreen() {
     initNotifications();
   }, []);
   
-  // Enrich pending requests with client and service information
   const enrichedPendingRequests = useMemo(() => {
     if (!pendingRequests || !Array.isArray(pendingRequests)) {
       console.warn('pendingRequests is not available or not an array:', pendingRequests);
@@ -49,7 +57,6 @@ export default function ProviderHomeScreen() {
     });
   }, [pendingRequests]);
   
-  // Mock data for upcoming appointments
   const upcomingAppointments = [
     {
       id: '1',
@@ -74,16 +81,26 @@ export default function ProviderHomeScreen() {
     }
   ];
 
-  // Mock data for earnings
   const earningsData = {
     today: 245,
     thisWeek: 1280,
     thisMonth: 4750
   };
 
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1500);
+  }, []);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScrollView style={styles.scrollView}>
+      <ScrollView 
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+        }
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
           <View>
@@ -104,7 +121,7 @@ export default function ProviderHomeScreen() {
         
         {/* Booking Requests Section */}
         {enrichedPendingRequests.length > 0 && (
-          <View style={styles.section}>
+          <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>New Booking Requests</Text>
               <TouchableOpacity onPress={() => router.push('/(app)/(provider)/(tabs)/requests')}>
@@ -137,8 +154,6 @@ export default function ProviderHomeScreen() {
                   <Text style={styles.requestDate}>{request.date}</Text>
                 </View>
                 
-
-                
                 <View style={styles.requestActions}>
                   <TouchableOpacity 
                     style={[styles.actionButton, styles.declineButton]}
@@ -158,11 +173,11 @@ export default function ProviderHomeScreen() {
                 </View>
               </View>
             ))}
-          </View>
+          </Animated.View>
         )}
 
         {/* Upcoming Appointments Section */}
-        <View style={styles.section}>
+        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
             <TouchableOpacity onPress={() => router.push('/(app)/(provider)/(tabs)/schedule')}>
@@ -184,10 +199,10 @@ export default function ProviderHomeScreen() {
               <ChevronRight size={20} color={COLORS.text} />
             </TouchableOpacity>
           ))}
-        </View>
+        </Animated.View>
 
         {/* Earnings Section */}
-        <View style={styles.section}>
+        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Earnings</Text>
             <TouchableOpacity onPress={() => console.log('Navigate to earnings details')}>
@@ -211,10 +226,10 @@ export default function ProviderHomeScreen() {
               <Text style={styles.earningsAmount}>${earningsData.thisMonth}</Text>
             </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Quick Actions */}
-        <View style={styles.section}>
+        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           
           <TouchableOpacity 
@@ -240,7 +255,7 @@ export default function ProviderHomeScreen() {
             <Text style={styles.actionText}>Process Payment</Text>
             <ChevronRight size={20} color={COLORS.text} />
           </TouchableOpacity>
-        </View>
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -352,6 +367,11 @@ const styles = StyleSheet.create({
     padding: 16,
     marginHorizontal: 4,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   earningsLabel: {
     fontSize: 14,
@@ -382,7 +402,12 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 4,
-    borderLeftColor: COLORS.warning,
+    borderLeftColor: COLORS.primary,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   requestHeader: {
     flexDirection: 'row',
@@ -436,13 +461,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.text,
     opacity: 0.7,
-  },
-  requestNotes: {
-    fontSize: 12,
-    color: COLORS.text,
-    opacity: 0.6,
-    fontStyle: 'italic',
-    marginBottom: 12,
   },
   requestActions: {
     flexDirection: 'row',

@@ -9,6 +9,7 @@ import {
   Share as RNShare,
   Platform,
   Linking,
+  RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, Info, Camera, User, Clock, Link as LinkIcon } from 'lucide-react-native';
@@ -21,6 +22,7 @@ import { generateProviderBookingLink } from '@/utils/bookingService';
 export default function BioScreen() {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'info' | 'reviews' | 'services'>('info');
+  const [refreshing, setRefreshing] = useState(false);
   const providerName = "Luis Martinez";
   const [showLocationEditor, setShowLocationEditor] = useState(false);
   const [alertConfig, setAlertConfig] = useState<{
@@ -74,6 +76,11 @@ export default function BioScreen() {
   const handleReviewsPress = () => setActiveTab('reviews');
   const handleServicesPress = () => setActiveTab('services');
   
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1500);
+  }, []);
+
   const handleSaveLocation = async (data: LocationData) => {
     if (!data) {
       console.error('Invalid location data');
@@ -147,7 +154,17 @@ export default function BioScreen() {
         </TouchableOpacity>
       </View>
       
-      <ScrollView style={styles.contentContainer}>
+      <ScrollView 
+        style={styles.contentContainer}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor={COLORS.primary}
+            colors={[COLORS.primary]}
+          />
+        }
+      >
         {activeTab === 'info' && (
           <View style={styles.infoContainer}>
             <Pressable 
@@ -311,6 +328,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.md,
     padding: SPACING.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   iconContainer: {
     width: 50,

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  RefreshControl,
 } from 'react-native';
 import { Clock, User, CheckCircle, XCircle, Calendar, Square, CheckSquare } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +22,12 @@ export default function BookingRequestsScreen() {
   const [bulkModalVisible, setBulkModalVisible] = useState<boolean>(false);
   const [bulkAction, setBulkAction] = useState<'accept' | 'decline'>('accept');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1500);
+  }, []);
 
   const filteredRequests = useMemo(() => {
     if (!bookingRequests || !Array.isArray(bookingRequests)) return [];
@@ -309,7 +316,15 @@ export default function BookingRequestsScreen() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor={COLORS.primary}
+            colors={[COLORS.primary]}
+          />
+        }
+        showsVerticalScrollIndicator={false}
       >
         {!filteredRequests || filteredRequests.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -405,6 +420,11 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   checkboxContainer: {
     position: 'absolute',

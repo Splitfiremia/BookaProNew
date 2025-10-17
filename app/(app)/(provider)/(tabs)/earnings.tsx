@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LineChart } from 'react-native-chart-kit';
+import { RefreshControl } from 'react-native';
 import { ChevronDown, DollarSign, TrendingUp, Calendar } from 'lucide-react-native';
 import { COLORS, FONTS, FONT_SIZES, SPACING, GLASS_STYLES } from '@/constants/theme';
 import { Payment } from '@/models/database';
@@ -134,6 +135,7 @@ export default function EarningsScreen() {
   const { width: screenWidth } = useWindowDimensions();
   const [selectedFilter, setSelectedFilter] = useState<DateFilter>('week');
   const [showFilterDropdown, setShowFilterDropdown] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Mock provider data - in real app this would come from provider context
   const providerData = useMemo(() => ({
@@ -270,9 +272,25 @@ export default function EarningsScreen() {
 
   const formatCurrency = (amount: number) => `${amount.toFixed(2)}`;
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1500);
+  }, []);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor={COLORS.primary}
+            colors={[COLORS.primary]}
+          />
+        }
+      >
         <View style={styles.header}>
           <Text style={styles.title}>Earnings</Text>
           
@@ -497,6 +515,11 @@ const styles = StyleSheet.create({
     flex: 1,
     ...GLASS_STYLES.card,
     padding: SPACING.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   kpiHeader: {
     flexDirection: 'row',

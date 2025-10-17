@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   TextInput,
+  RefreshControl,
 } from 'react-native';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import { Search, ChevronRight, Clock } from 'lucide-react-native';
@@ -132,7 +133,13 @@ const clients = generateClients();
 
 export default function ClientsScreen() {
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1500);
+  }, []);
   
   const filteredClients = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -210,6 +217,14 @@ export default function ClientsScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderClientItem}
         contentContainerStyle={styles.clientList}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor={COLORS.primary}
+            colors={[COLORS.primary]}
+          />
+        }
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>
@@ -264,6 +279,11 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 1,
   },
   clientImage: {
     width: 50,
