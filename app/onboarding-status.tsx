@@ -14,6 +14,17 @@ export default function OnboardingStatusScreen() {
   const shopOwnerOnboarding = useShopOwnerOnboarding();
 
   const renderSection = (title: string, data: Record<string, any>) => {
+    if (!data || typeof data !== 'object') {
+      return (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{title}</Text>
+          <View style={styles.dataContainer}>
+            <Text style={styles.dataValue}>No data available</Text>
+          </View>
+        </View>
+      );
+    }
+
     return (
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{title}</Text>
