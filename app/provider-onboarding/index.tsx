@@ -7,7 +7,9 @@ import {
   SafeAreaView, 
   ScrollView, 
   Animated,
-  StatusBar 
+  StatusBar,
+  Dimensions,
+  Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
@@ -15,6 +17,23 @@ import { OnboardingNavigation } from '@/components/OnboardingNavigation';
 import { useProviderOnboarding, WorkSituation } from '@/providers/ProviderOnboardingProvider';
 import { Building2, Store, Car, Home, MapPin, Users } from 'lucide-react-native';
 import { COLORS, FONTS, FONT_SIZES, SPACING, GLASS_STYLES } from '@/constants/theme';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// Type definitions for better type safety
+interface WorkOption {
+  id: WorkSituation;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  features: string[];
+}
+
+interface NextStepInfo {
+  icon: React.ComponentType<any>;
+  text: string;
+  route: string;
+}
 
 export default function ProviderOnboardingIntro() {
   const router = useRouter();
@@ -29,14 +48,10 @@ export default function ProviderOnboardingIntro() {
   
   const [selected, setSelected] = useState<WorkSituation | null>(workSituation);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [hasError, setHasError] = useState(false);
   
-  const workOptions: { 
-    id: WorkSituation; 
-    title: string; 
-    description: string; 
-    icon: React.ReactNode;
-    features: string[];
-  }[] = [
+  // Memoized work options to prevent unnecessary re-renders
+  const workOptions: WorkOption[] = React.useMemo(() => [
     {
       id: 'own_shop',
       title: 'Shop Owner',
@@ -65,206 +80,239 @@ export default function ProviderOnboardingIntro() {
       icon: <Home size={28} color={COLORS.primary} />,
       features: ['Private appointments', 'Lower overhead', 'Personalized space']
     }
-  ];
-  
-  // Animation values
+  ], []);
+
+  // Animation refs with better performance
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const headerSlideAnim = useRef(new Animated.Value(-20)).current;
-  const optionsSlideAnim = useRef(new Animated.Value(50)).current;
   const navigationSlideAnim = useRef(new Animated.Value(30)).current;
-  const scaleAnim = useRef(new Animated.Value(0.95)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
   
-  // Individual option animations
+  // Simplified option animations - only animate opacity and slight translation
   const optionAnimations = useRef(
     workOptions.map(() => ({
-      scale: new Animated.Value(1),
       opacity: new Animated.Value(0),
-      translateY: new Animated.Value(20)
+      translateY: new Animated.Value(10)
     }))
   ).current;
 
-  const startEntranceAnimation = useCallback(() => {
-    console.log('[Animation] Starting entrance animation');
-    setIsAnimating(true);
-    
-    // Reset all animations
-    fadeAnim.setValue(0);
-    slideAnim.setValue(30);
-    headerSlideAnim.setValue(-20);
-    optionsSlideAnim.setValue(50);
-    navigationSlideAnim.setValue(30);
-    scaleAnim.setValue(0.95);
-    pulseAnim.setValue(1);
-    
-    optionAnimations.forEach(anim => {
-      anim.scale.setValue(1);
-      anim.opacity.setValue(0);
-      anim.translateY.setValue(20);
-    });
+  // Animation cleanup
+  useEffect(() => {
+    return () => {
+      // Clean up animations to prevent memory leaks
+      [fadeAnim, slideAnim, headerSlideAnim, navigationSlideAnim].forEach(anim => {
+        anim.stopAnimation();
+      });
+      optionAnimations.forEach(anim => {
+        anim.opacity.stopAnimation();
+        anim.translateY.stopAnimation();
+      });
+    };
+  }, []);
 
-    // Staggered animation sequence
-    const animations = Animated.stagger(100, [
-      // Background and header animation
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        Animated.timing(headerSlideAnim, {
-          toValue: 0,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 1,
-          duration: 700,
-          useNativeDriver: true,
-        }),
-      ]),
+  const startEntranceAnimation = useCallback(() => {
+    try {
+      setIsAnimating(true);
+      setHasError(false);
       
-      // Content animation
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }),
+      // Reset animations
+      fadeAnim.setValue(0);
+      slideAnim.setValue(30);
+      headerSlideAnim.setValue(-20);
+      navigationSlideAnim.setValue(30);
       
-      // Individual options animation (staggered)
-      ...optionAnimations.map((anim, index) => 
-        Animated.stagger(index * 80, [
-          Animated.parallel([
-            Animated.timing(anim.opacity, {
-              toValue: 1,
-              duration: 400,
-              useNativeDriver: true,
-            }),
-            Animated.timing(anim.translateY, {
-              toValue: 0,
-              duration: 500,
-              useNativeDriver: true,
-            }),
-            Animated.spring(anim.scale, {
-              toValue: 1,
-              tension: 100,
-              friction: 8,
-              useNativeDriver: true,
-            }),
-          ])
-        ])
-      ),
-      
-      // Navigation animation
-      Animated.parallel([
-        Animated.timing(navigationSlideAnim, {
+      optionAnimations.forEach(anim => {
+        anim.opacity.setValue(0);
+        anim.translateY.setValue(10);
+      });
+
+      // Simplified animation sequence for better performance
+      const mainAnimation = Animated.parallel([
+        // Header animation
+        Animated.sequence([
+          Animated.timing(headerSlideAnim, {
+            toValue: 0,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]),
+        
+        // Content slide in
+        Animated.timing(slideAnim, {
           toValue: 0,
           duration: 500,
           useNativeDriver: true,
         }),
-        Animated.timing(optionsSlideAnim, {
+        
+        // Options staggered animation
+        Animated.stagger(100, 
+          optionAnimations.map(anim => 
+            Animated.parallel([
+              Animated.timing(anim.opacity, {
+                toValue: 1,
+                duration: 400,
+                useNativeDriver: true,
+              }),
+              Animated.timing(anim.translateY, {
+                toValue: 0,
+                duration: 400,
+                useNativeDriver: true,
+              })
+            ])
+          )
+        ),
+        
+        // Navigation slide in
+        Animated.timing(navigationSlideAnim, {
           toValue: 0,
           duration: 400,
           useNativeDriver: true,
         }),
-      ]),
-    ]);
+      ]);
 
-    animations.start(() => {
-      console.log('[Animation] Entrance animation complete');
+      mainAnimation.start(() => setIsAnimating(false));
+    } catch (error) {
+      console.error('Animation error:', error);
+      setHasError(true);
       setIsAnimating(false);
-    });
-    
-    // Fallback timeout to ensure isAnimating is reset
-    const timeout = setTimeout(() => {
-      console.log('[Animation] Fallback timeout - resetting isAnimating');
-      setIsAnimating(false);
-    }, 3000);
-    
-    return () => clearTimeout(timeout);
-  }, [fadeAnim, slideAnim, headerSlideAnim, optionsSlideAnim, navigationSlideAnim, scaleAnim, pulseAnim, optionAnimations]);
+    }
+  }, [fadeAnim, slideAnim, headerSlideAnim, navigationSlideAnim, optionAnimations, workOptions.length]);
 
+  // Initialize component
   useEffect(() => {
-    console.log('[Mount] Component mounted, starting animations');
-    resetOnboarding();
-    const cleanup = startEntranceAnimation();
-    
-    return () => {
-      console.log('[Unmount] Component unmounting');
-      if (cleanup) cleanup();
+    const initialize = async () => {
+      try {
+        await resetOnboarding();
+        startEntranceAnimation();
+      } catch (error) {
+        console.error('Initialization error:', error);
+        setHasError(true);
+      }
     };
+
+    initialize();
   }, [resetOnboarding, startEntranceAnimation]);
 
   const handleSelect = useCallback((situation: WorkSituation) => {
-    console.log('[Selection] Attempting to select:', situation, '- isAnimating:', isAnimating);
-    if (isAnimating) {
-      console.log('[Selection] Blocked - animation in progress');
-      return;
-    }
+    if (isAnimating) return;
     
-    console.log('[Selection] Selected:', situation);
     setSelected(situation);
     
-    // Selection feedback animation
+    // Simple selection feedback
     Animated.sequence([
-      Animated.timing(pulseAnim, {
-        toValue: 1.1,
-        duration: 150,
+      Animated.timing(fadeAnim, {
+        toValue: 0.9,
+        duration: 100,
         useNativeDriver: true,
       }),
-      Animated.timing(pulseAnim, {
+      Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 150,
+        duration: 100,
         useNativeDriver: true,
       }),
     ]).start();
-  }, [isAnimating, pulseAnim]);
+  }, [isAnimating, fadeAnim]);
 
-  const handleContinue = useCallback(() => {
+  const handleContinue = useCallback(async () => {
     if (!selected || isAnimating) return;
     
-    setIsAnimating(true);
-    setWorkSituation(selected);
-    
-    // Exit animation before navigation
-    const exitAnimation = Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: -30,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-    ]);
-    
-    exitAnimation.start(() => {
-      nextStep();
+    try {
+      setIsAnimating(true);
+      await setWorkSituation(selected);
       
-      // Route to the appropriate next screen based on selection
-      const routes = {
-        'own_shop': '/provider-onboarding/service-address',
-        'work_at_shop': '/provider-onboarding/shop-search',
-        'mobile': '/provider-onboarding/service-address',
-        'home_studio': '/provider-onboarding/service-address'
-      };
+      // Simple exit animation
+      const exitAnimation = Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: -20,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]);
       
-      router.replace(routes[selected] || '/provider-onboarding/service-address');
-    });
+      exitAnimation.start(() => {
+        nextStep();
+        
+        // Route configuration with proper typing
+        const routes: Record<WorkSituation, string> = {
+          'own_shop': '/provider-onboarding/service-address',
+          'work_at_shop': '/provider-onboarding/shop-search',
+          'mobile': '/provider-onboarding/service-address',
+          'home_studio': '/provider-onboarding/service-address'
+        };
+        
+        const targetRoute = routes[selected];
+        if (targetRoute) {
+          router.replace(targetRoute);
+        } else {
+          // Fallback route
+          router.replace('/provider-onboarding/service-address');
+        }
+      });
+    } catch (error) {
+      console.error('Navigation error:', error);
+      Alert.alert('Error', 'Failed to proceed. Please try again.');
+      setIsAnimating(false);
+    }
   }, [selected, isAnimating, setWorkSituation, nextStep, fadeAnim, slideAnim, router]);
 
-  const getNextStepInfo = useCallback((situation: WorkSituation) => {
-    const info = {
-      'own_shop': { icon: MapPin, text: 'Next: Add your shop location' },
-      'work_at_shop': { icon: Users, text: 'Next: Find your shop' },
-      'mobile': { icon: Car, text: 'Next: Set service areas' },
-      'home_studio': { icon: Home, text: 'Next: Add your studio address' }
+  // Memoized next step info for better performance
+  const getNextStepInfo = useCallback((situation: WorkSituation): NextStepInfo => {
+    const info: Record<WorkSituation, NextStepInfo> = {
+      'own_shop': { 
+        icon: MapPin, 
+        text: 'Next: Add your shop location',
+        route: '/provider-onboarding/service-address'
+      },
+      'work_at_shop': { 
+        icon: Users, 
+        text: 'Next: Find your shop',
+        route: '/provider-onboarding/shop-search'
+      },
+      'mobile': { 
+        icon: Car, 
+        text: 'Next: Set service areas',
+        route: '/provider-onboarding/service-address'
+      },
+      'home_studio': { 
+        icon: Home, 
+        text: 'Next: Add your studio address',
+        route: '/provider-onboarding/service-address'
+      }
     };
-    return info[situation] || { icon: MapPin, text: 'Next: Continue setup' };
+    return info[situation] || { icon: MapPin, text: 'Next: Continue setup', route: '/provider-onboarding/service-address' };
   }, []);
+
+  // Error state UI
+  if (hasError) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorTitle}>Something went wrong</Text>
+          <Text style={styles.errorText}>Please restart the app and try again.</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={() => {
+              setHasError(false);
+              startEntranceAnimation();
+            }}
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -274,30 +322,44 @@ export default function ProviderOnboardingIntro() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         bounces={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <Animated.View style={[
-          styles.content,
-          {
-            opacity: fadeAnim,
-            transform: [
-              { translateY: slideAnim },
-              { scale: scaleAnim }
-            ]
-          }
-        ]}>
-          {/* Header Section */}
-          <Animated.View style={[
-            styles.headerContainer,
+        <Animated.View 
+          style={[
+            styles.content,
             {
               opacity: fadeAnim,
-              transform: [{ translateY: headerSlideAnim }]
+              transform: [{ translateY: slideAnim }]
             }
-          ]}>
+          ]}
+          accessible={true}
+          accessibilityLabel="Provider onboarding work situation selection"
+        >
+          {/* Header Section */}
+          <Animated.View 
+            style={[
+              styles.headerContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: headerSlideAnim }]
+              }
+            ]}
+            accessibilityRole="header"
+          >
             <View style={styles.progressContainer}>
               <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${(currentStep / totalSteps) * 100}%` }]} />
+                <View 
+                  style={[
+                    styles.progressFill, 
+                    { width: `${(currentStep / totalSteps) * 100}%` }
+                  ]} 
+                  accessibilityRole="progressbar"
+                  accessibilityLabel={`Step ${currentStep} of ${totalSteps}`}
+                />
               </View>
-              <Text style={styles.progressText}>Step {currentStep} of {totalSteps}</Text>
+              <Text style={styles.progressText}>
+                Step {currentStep} of {totalSteps}
+              </Text>
             </View>
             
             <Text style={styles.question}>How do you work?</Text>
@@ -307,13 +369,7 @@ export default function ProviderOnboardingIntro() {
           </Animated.View>
 
           {/* Options Grid */}
-          <Animated.View style={[
-            styles.optionsContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: optionsSlideAnim }]
-            }
-          ]}>
+          <View style={styles.optionsContainer}>
             {workOptions.map((option, index) => {
               const NextStepIcon = getNextStepInfo(option.id).icon;
               const isSelected = selected === option.id;
@@ -326,34 +382,25 @@ export default function ProviderOnboardingIntro() {
                     {
                       opacity: optionAnimations[index].opacity,
                       transform: [
-                        { translateY: optionAnimations[index].translateY },
-                        { scale: optionAnimations[index].scale }
+                        { translateY: optionAnimations[index].translateY }
                       ]
                     }
                   ]}
-                  pointerEvents="box-none"
                 >
-                  <Animated.View
+                  <TouchableOpacity
                     style={[
-                      isSelected && {
-                        transform: [{ scale: pulseAnim }]
-                      }
+                      styles.optionCard,
+                      isSelected && styles.selectedCard
                     ]}
-                    pointerEvents="box-none"
+                    onPress={() => handleSelect(option.id)}
+                    disabled={isAnimating}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                    accessibilityLabel={`${option.title}. ${option.description}. Features: ${option.features.join(', ')}`}
+                    accessibilityHint={isSelected ? 'Selected. Double tap to continue' : 'Double tap to select this work style'}
+                    testID={`work-option-${option.id}`}
                   >
-                    <TouchableOpacity
-                      style={[
-                        styles.optionCard,
-                        isSelected && styles.selectedCard
-                      ]}
-                      onPress={() => {
-                        console.log('[Touch] Pressed:', option.id);
-                        handleSelect(option.id);
-                      }}
-                      disabled={isAnimating}
-                      activeOpacity={0.7}
-                      testID={`work-option-${option.id}`}
-                    >
                     <View style={[
                       styles.iconContainer,
                       isSelected && styles.selectedIconContainer
@@ -394,20 +441,12 @@ export default function ProviderOnboardingIntro() {
                       </View>
                       
                       {isSelected && (
-                        <Animated.View 
-                          style={[
-                            styles.nextStepInfo,
-                            {
-                              opacity: pulseAnim,
-                              transform: [{ scale: pulseAnim }]
-                            }
-                          ]}
-                        >
+                        <View style={styles.nextStepInfo}>
                           <NextStepIcon size={16} color={COLORS.primary} />
                           <Text style={styles.nextStepText}>
                             {getNextStepInfo(option.id).text}
                           </Text>
-                        </Animated.View>
+                        </View>
                       )}
                     </View>
                     
@@ -416,22 +455,24 @@ export default function ProviderOnboardingIntro() {
                         <View style={styles.selectionDot} />
                       </View>
                     )}
-                    </TouchableOpacity>
-                  </Animated.View>
+                  </TouchableOpacity>
                 </Animated.View>
               );
             })}
-          </Animated.View>
+          </View>
         </Animated.View>
 
         {/* Navigation */}
-        <Animated.View style={[
-          styles.animatedNavigationContainer,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: navigationSlideAnim }]
-          }
-        ]}>
+        <Animated.View 
+          style={[
+            styles.animatedNavigationContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: navigationSlideAnim }]
+            }
+          ]}
+          accessibilityRole="toolbar"
+        >
           <OnboardingNavigation
             onNext={handleContinue}
             nextDisabled={!selected || isAnimating}
@@ -439,6 +480,7 @@ export default function ProviderOnboardingIntro() {
             nextTitle={selected ? "Continue" : "Select your work style"}
             loading={isAnimating}
             testID="work-situation-navigation"
+            accessibilityLabel="Navigation for work situation selection"
           />
         </Animated.View>
       </ScrollView>
@@ -455,6 +497,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: SPACING.lg,
     paddingBottom: SPACING.xl,
+    minHeight: SCREEN_HEIGHT - 100, // Ensure proper scroll behavior
   },
   content: {
     flex: 1,
@@ -497,6 +540,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     textAlign: 'center',
     lineHeight: 22,
+    paddingHorizontal: SPACING.md,
   },
   optionsContainer: {
     marginBottom: SPACING.xl,
@@ -514,6 +558,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     position: 'relative',
     overflow: 'hidden',
+    minHeight: 140, // Consistent height
   },
   selectedCard: {
     borderColor: COLORS.primary,
@@ -545,6 +590,7 @@ const styles = StyleSheet.create({
   },
   optionContent: {
     flex: 1,
+    flexShrink: 1, // Prevent text overflow
   },
   optionTitle: {
     fontSize: FONT_SIZES.lg,
@@ -588,6 +634,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     color: COLORS.lightGray,
     fontFamily: FONTS.regular,
+    flexShrink: 1,
   },
   selectedFeatureText: {
     color: COLORS.text,
@@ -627,5 +674,40 @@ const styles = StyleSheet.create({
   },
   animatedNavigationContainer: {
     marginTop: 'auto',
+  },
+  // Error state styles
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.xl,
+  },
+  errorTitle: {
+    fontSize: FONT_SIZES.xl,
+    color: COLORS.text,
+    fontFamily: FONTS.bold,
+    marginBottom: SPACING.md,
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: FONT_SIZES.md,
+    color: COLORS.lightGray,
+    fontFamily: FONTS.regular,
+    marginBottom: SPACING.xl,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  retryButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: 12,
+    minWidth: 150,
+  },
+  retryButtonText: {
+    color: COLORS.white,
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
+    textAlign: 'center',
   },
 });
