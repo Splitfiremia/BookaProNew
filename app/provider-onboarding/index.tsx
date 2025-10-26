@@ -86,6 +86,7 @@ export default function ProviderOnboardingIntro() {
   ).current;
 
   const startEntranceAnimation = useCallback(() => {
+    console.log('[Animation] Starting entrance animation');
     setIsAnimating(true);
     
     // Reset all animations
@@ -170,17 +171,39 @@ export default function ProviderOnboardingIntro() {
       ]),
     ]);
 
-    animations.start(() => setIsAnimating(false));
+    animations.start(() => {
+      console.log('[Animation] Entrance animation complete');
+      setIsAnimating(false);
+    });
+    
+    // Fallback timeout to ensure isAnimating is reset
+    const timeout = setTimeout(() => {
+      console.log('[Animation] Fallback timeout - resetting isAnimating');
+      setIsAnimating(false);
+    }, 3000);
+    
+    return () => clearTimeout(timeout);
   }, [fadeAnim, slideAnim, headerSlideAnim, optionsSlideAnim, navigationSlideAnim, scaleAnim, pulseAnim, optionAnimations]);
 
   useEffect(() => {
+    console.log('[Mount] Component mounted, starting animations');
     resetOnboarding();
-    startEntranceAnimation();
+    const cleanup = startEntranceAnimation();
+    
+    return () => {
+      console.log('[Unmount] Component unmounting');
+      if (cleanup) cleanup();
+    };
   }, [resetOnboarding, startEntranceAnimation]);
 
   const handleSelect = useCallback((situation: WorkSituation) => {
-    if (isAnimating) return;
+    console.log('[Selection] Attempting to select:', situation, '- isAnimating:', isAnimating);
+    if (isAnimating) {
+      console.log('[Selection] Blocked - animation in progress');
+      return;
+    }
     
+    console.log('[Selection] Selected:', situation);
     setSelected(situation);
     
     // Selection feedback animation
@@ -308,6 +331,7 @@ export default function ProviderOnboardingIntro() {
                       ]
                     }
                   ]}
+                  pointerEvents="box-none"
                 >
                   <Animated.View
                     style={[
@@ -315,13 +339,17 @@ export default function ProviderOnboardingIntro() {
                         transform: [{ scale: pulseAnim }]
                       }
                     ]}
+                    pointerEvents="box-none"
                   >
                     <TouchableOpacity
                       style={[
                         styles.optionCard,
                         isSelected && styles.selectedCard
                       ]}
-                      onPress={() => handleSelect(option.id)}
+                      onPress={() => {
+                        console.log('[Touch] Pressed:', option.id);
+                        handleSelect(option.id);
+                      }}
                       disabled={isAnimating}
                       activeOpacity={0.7}
                       testID={`work-option-${option.id}`}
