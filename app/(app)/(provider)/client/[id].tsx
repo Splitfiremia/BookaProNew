@@ -225,16 +225,11 @@ export default function ClientDetailScreen() {
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <Stack.Screen 
         options={{ 
-          title: client.name,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()}>
-              <ArrowLeft size={24} color={COLORS.text} />
-            </TouchableOpacity>
-          )
+          headerShown: false
         }} 
       />
       
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top }}>
         {/* Client Header */}
         <View style={styles.clientHeader}>
           <Image source={{ uri: client.image }} style={styles.clientImage} />
@@ -369,7 +364,22 @@ export default function ClientDetailScreen() {
             </View>
           )}
         </View>
+        
+        {/* Bottom Spacing for Back Button */}
+        <View style={{ height: 100 }} />
       </ScrollView>
+      
+      {/* Bottom Back Button */}
+      <View style={[styles.bottomBackButton, { bottom: insets.bottom + 20 }]}>
+        <TouchableOpacity 
+          style={styles.backButtonWidget}
+          onPress={() => router.back()}
+          testID="back-button"
+        >
+          <ArrowLeft size={24} color="#FFF" />
+          <Text style={styles.backButtonWidgetText}>Back</Text>
+        </TouchableOpacity>
+      </View>
       
       {/* Notes Edit Modal */}
       <Modal
@@ -695,5 +705,33 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     fontFamily: FONTS.regular,
+  },
+  bottomBackButton: {
+    position: 'absolute',
+    left: SPACING.lg,
+    zIndex: 10,
+  },
+  backButtonWidget: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: 30,
+    gap: SPACING.xs,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  backButtonWidgetText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: FONTS.bold,
   },
 });
