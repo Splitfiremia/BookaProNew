@@ -21,6 +21,7 @@ export default function ProviderLayout() {
                 <Stack.Screen name="appointment/[id]" options={{ title: "Appointment Details" }} />
                 <Stack.Screen name="availability" options={{ title: "Set Availability" }} />
                 <Stack.Screen name="booking" options={{ title: "New Booking" }} />
+                <Stack.Screen name="client/[id]" options={{ headerShown: false }} />
                 <Stack.Screen name="complete-payment" options={{ title: "Complete Payment" }} />
                 <Stack.Screen name="broadcast" options={{ headerShown: false }} />
               </Stack>
